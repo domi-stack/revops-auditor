@@ -1,51 +1,58 @@
 import streamlit as st
 import pandas as pd
 
-from engine.parser import normalize_csv
+from engine.parser import analyze_schema, extract_signals
 from engine.copilot import revenue_copilot
 from engine.executive import executive_summary
+from engine.forecast import arr_forecast
+from engine.scenarios import scenario_analysis
 
-st.set_page_config(page_title="Revenue Growth OS", layout="wide")
+st.set_page_config(page_title="Revenue Intelligence Engine", layout="wide")
 
-st.title("📊 Revenue Growth OS")
+st.title("🧠 Revenue Intelligence Engine")
 
 file = st.file_uploader("Upload CSV", type=["csv"])
 
 if file:
     df = pd.read_csv(file)
 
+    # ---------------- RAW DATA ----------------
     st.subheader("Raw Data")
     st.dataframe(df)
 
-    # ---------------- DATA ----------------
-    data = normalize_csv(df)
+    # ---------------- DATA UNDERSTANDING ----------------
+    schema = analyze_schema(df)
+    signals = extract_signals(df)
 
-    st.subheader("Normalized Metrics")
-    st.json(data)
+    st.subheader("🧠 Data Understanding")
+    st.json(schema)
+
+    st.subheader("📊 Data Signals")
+    st.json(signals)
+
+    # ---------------- NORMALIZED DATA ----------------
+    data = signals  # usamos signals como input del engine
 
     # ---------------- COPILOT ----------------
     actions = revenue_copilot(data)
-
-    # ---------------- EXECUTIVE LAYER ----------------
     report = executive_summary(actions)
 
-    st.subheader("🧠 Executive Summary")
+    st.subheader("🧠 Executive View")
+    st.json(report)
 
-    if report["status"] == "GREEN":
-        st.success(report["summary"])
-    elif report["status"] == "YELLOW":
-        st.warning(report["summary"])
-    else:
-        st.error(report["summary"])
+    # ---------------- FORECAST ----------------
+    st.subheader("📈 ARR Forecast")
 
-    st.write("Total Impact (€):", report["total_impact"])
+    forecast = arr_forecast(data)
+    st.json(forecast)
 
-    st.subheader("🔥 Top 3 Actions")
+    # ---------------- SCENARIOS ----------------
+    st.subheader("🔥 Scenario Impact Ranking")
 
-    for i, a in enumerate(report["top_actions"], 1):
-        st.markdown(f"### {i}. {a['problem']}")
-        st.write("Recommendation:", a["recommendation"])
-        st.write("Impact:", a["estimated_gain"])
+    scenarios = scenario_analysis(data)
+
+    for s in scenarios:
+        st.write(s)
 
 else:
-    st.info("Upload a CSV to start analysis")
+    st.info("Upload a CSV to analyze revenue system")
