@@ -4,8 +4,7 @@ import pandas as pd
 from engine.parser import analyze_schema, extract_signals
 from engine.copilot import revenue_copilot
 from engine.executive import executive_summary
-from engine.forecast import arr_forecast
-from engine.scenarios import scenario_analysis
+from engine.leak_map import revenue_leak_map
 
 st.set_page_config(page_title="Revenue Intelligence Engine", layout="wide")
 
@@ -16,11 +15,10 @@ file = st.file_uploader("Upload CSV", type=["csv"])
 if file:
     df = pd.read_csv(file)
 
-    # ---------------- RAW DATA ----------------
     st.subheader("Raw Data")
     st.dataframe(df)
 
-    # ---------------- DATA UNDERSTANDING ----------------
+    # ---------------- UNDERSTANDING ----------------
     schema = analyze_schema(df)
     signals = extract_signals(df)
 
@@ -30,29 +28,21 @@ if file:
     st.subheader("📊 Data Signals")
     st.json(signals)
 
-    # ---------------- NORMALIZED DATA ----------------
-    data = signals  # usamos signals como input del engine
+    data = signals
 
     # ---------------- COPILOT ----------------
     actions = revenue_copilot(data)
     report = executive_summary(actions)
 
-    st.subheader("🧠 Executive View")
+    st.subheader("🧠 Executive Summary")
     st.json(report)
 
-    # ---------------- FORECAST ----------------
-    st.subheader("📈 ARR Forecast")
+    # ---------------- LEAK MAP ----------------
+    st.subheader("🚨 Revenue Leak Map")
+    leaks = revenue_leak_map(data)
 
-    forecast = arr_forecast(data)
-    st.json(forecast)
-
-    # ---------------- SCENARIOS ----------------
-    st.subheader("🔥 Scenario Impact Ranking")
-
-    scenarios = scenario_analysis(data)
-
-    for s in scenarios:
-        st.write(s)
+    for l in leaks:
+        st.write(l)
 
 else:
     st.info("Upload a CSV to analyze revenue system")
