@@ -2,14 +2,12 @@ import streamlit as st
 import pandas as pd
 
 from engine.parser import normalize_csv
-from engine.diagnostics import detect_bottlenecks
-from engine.simulator import simulate_impact
-from engine.leak_map import revenue_leak_map
 from engine.copilot import revenue_copilot
+from engine.executive import executive_summary
 
-st.set_page_config(page_title="Revenue AI Copilot", layout="wide")
+st.set_page_config(page_title="Revenue Growth OS", layout="wide")
 
-st.title("🤖 Revenue AI Copilot")
+st.title("📊 Revenue Growth OS")
 
 file = st.file_uploader("Upload CSV", type=["csv"])
 
@@ -25,27 +23,29 @@ if file:
     st.subheader("Normalized Metrics")
     st.json(data)
 
-    # ---------------- BOTTLENECKS ----------------
-    st.subheader("Bottlenecks")
-    st.write(detect_bottlenecks(data))
-
-    # ---------------- LEAK MAP ----------------
-    st.subheader("Revenue Leak Map")
-    st.write(revenue_leak_map(data))
-
-    # ---------------- COPILOT (CORE VALUE) ----------------
-    st.subheader("🔥 Top Revenue Actions (AI Copilot)")
-
+    # ---------------- COPILOT ----------------
     actions = revenue_copilot(data)
 
-    if not actions:
-        st.success("No critical issues detected")
+    # ---------------- EXECUTIVE LAYER ----------------
+    report = executive_summary(actions)
 
-    for i, a in enumerate(actions, 1):
+    st.subheader("🧠 Executive Summary")
+
+    if report["status"] == "GREEN":
+        st.success(report["summary"])
+    elif report["status"] == "YELLOW":
+        st.warning(report["summary"])
+    else:
+        st.error(report["summary"])
+
+    st.write("Total Impact (€):", report["total_impact"])
+
+    st.subheader("🔥 Top 3 Actions")
+
+    for i, a in enumerate(report["top_actions"], 1):
         st.markdown(f"### {i}. {a['problem']}")
-        st.write("Impact:", a["impact"])
         st.write("Recommendation:", a["recommendation"])
-        st.write("Estimated Gain:", a["estimated_gain"])
+        st.write("Impact:", a["estimated_gain"])
 
 else:
-    st.info("Upload a CSV to start")
+    st.info("Upload a CSV to start analysis")
