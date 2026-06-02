@@ -1,23 +1,35 @@
 import pandas as pd
 
-def normalize_csv(df):
+def analyze_schema(df):
     df.columns = [c.lower().strip() for c in df.columns]
 
-    data = {}
+    schema = {
+        "columns": list(df.columns),
+        "row_count": len(df),
+    }
 
-    if "lead" in df.columns:
-        data["lead"] = df["lead"].sum()
+    # heurística simple de tipo de dataset
+    if any("revenue" in c or "arr" in c for c in df.columns):
+        schema["type"] = "revenue_dataset"
+    elif any("lead" in c or "mql" in c for c in df.columns):
+        schema["type"] = "funnel_dataset"
+    else:
+        schema["type"] = "unknown_business_dataset"
 
-    if "mql" in df.columns:
-        data["mql"] = df["mql"].sum()
+    return schema
 
-    if "sql" in df.columns:
-        data["sql"] = df["sql"].sum()
 
-    if "revenue" in df.columns:
-        data["revenue"] = df["revenue"].sum()
+def extract_signals(df):
+    df.columns = [c.lower().strip() for c in df.columns]
 
-    if "cost" in df.columns:
-        data["cost"] = df["cost"].sum()
+    signals = {}
 
-    return data
+    numeric_cols = df.select_dtypes(include="number").columns
+
+    for col in numeric_cols:
+        signals[col] = {
+            "sum": float(df[col].sum()),
+            "avg": float(df[col].mean())
+        }
+
+    return signals
