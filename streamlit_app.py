@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from analytics.funnel import funnel_conversion
-from analytics.unit_economics import unit_economics
+from analytics.insights import generate_insights
 
 st.set_page_config(page_title="RevOps MVP", layout="wide")
 
